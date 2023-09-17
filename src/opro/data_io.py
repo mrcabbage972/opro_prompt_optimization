@@ -2,10 +2,11 @@ import logging
 import os
 import shlex
 import subprocess
-from typing import List, Optional
+from typing import List
+from typing import Optional
 
-import numpy as np
 import zstandard
+from appdirs import user_cache_dir
 
 LOGGER = logging.getLogger(__name__)
 
@@ -81,10 +82,6 @@ def download_file(source_uri: str, target_path: str, unpack: bool = False,
         else:
             shell(["mv", tmp_path, target_path])
     LOGGER.info(f"Finished downloading {source_uri} to {target_path}")
-
-from appdirs import user_cache_dir
-
-LOGGER = logging.getLogger(__name__)
 
 
 def get_cache_dir(dir_name=None, create=True):
