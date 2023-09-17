@@ -14,5 +14,7 @@ def get_dataset(split: str = None) -> List[ProblemExample]:
         download_file(source_uri=source_uri, target_path=target_path)
         with open(target_path, 'r') as fin:
             raw_data = [json.loads(x) for x in fin]
-        questions, answers = zip(*[x.values() for x in raw_data])
-        return questions, answers
+
+        dataset = [ProblemExample(question=x['question'], answer=x['answer']) for x in raw_data]
+
+        return dataset
