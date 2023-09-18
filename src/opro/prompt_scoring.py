@@ -1,3 +1,4 @@
+import logging
 import re
 from typing import List
 
@@ -12,8 +13,11 @@ from src.opro.settings import FINAL_ANSWER_SEP
 from src.opro.settings import MAX_RESPONSE_TOKENS
 from src.opro.settings import MODEL_NAME
 
+LOGGER = logging.getLogger(__name__)
+
 
 def generate_answers(demo_examples, test_examples, prompt_candidate):
+    LOGGER.info(f'Generating answers for prompt candidate: {prompt_candidate}')
     candidate_problem_prompts = [(build_problem_prompt(p, demo_examples, prompt_candidate)) for p in test_examples]
     answers = []
     for candidate_problem_prompt in candidate_problem_prompts:
@@ -42,9 +46,8 @@ def score_prompt_candidates(prompt_candidates: List[str],
                             test_examples: List[ProblemExample]) \
         -> List[PromptExample]:
     scored_prompt_candidates = []
-    for prompt_candidate in tqdm(prompt_candidates):
+    for prompt_candidate in tqdm(prompt_candidates, desc='Scoring prompt candidates'):
         answers = generate_answers(demo_examples, test_examples, prompt_candidate)
         prompt_candidate_score = get_prompt_candidate_score(answers, test_examples)
         scored_prompt_candidates.append(PromptExample(prompt=prompt_candidate, score=prompt_candidate_score))
-    response_texts = []
-    return response_texts
+    return scored_prompt_candidates

@@ -2,10 +2,14 @@
 Implementing the GSM8k prompt optimization from the paper "Large Language Models as Optimizers".
 
 # Prerequisites
+- Python 3.9+
+- OpenAI API key
 
 # Installation
+Run `pip install -r requirements.txt` to install the required packages.
 
 # Usage
+Run `python main.py` to run the GSM8k prompt optimization.
 
 # Citations
 @misc{yang2023large,

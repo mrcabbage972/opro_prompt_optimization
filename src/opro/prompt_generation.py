@@ -1,3 +1,4 @@
+import logging
 from typing import List
 
 import openai
@@ -9,6 +10,9 @@ from schema import ProblemExample
 from schema import PromptExample
 
 from src.opro.settings import MAX_RESPONSE_TOKENS
+from src.opro.settings import MODEL_NAME
+
+LOGGER = logging.getLogger(__name__)
 
 
 def generate_opt_prompt(prompt_examples: List[PromptExample], problem_examples: List[ProblemExample]):
@@ -27,12 +31,14 @@ def generate_opt_prompt(prompt_examples: List[PromptExample], problem_examples: 
 
 
 def generate_prompt_candidates(prompt_examples: List[PromptExample], problem_examples: List[ProblemExample]):
+    LOGGER.info('Generating prompt candidates')
     opt_prompt = generate_opt_prompt(prompt_examples, problem_examples)
 
     response = openai.ChatCompletion.create(
-        model="gpt-3.5-turbo",
-        messages=[format_openai_chat_prompt(opt_prompt)],
+        model=MODEL_NAME,
+        messages=format_openai_chat_prompt(opt_prompt),
         temperature=1.0,
         max_tokens=MAX_RESPONSE_TOKENS
     )
-    return response.choices
+    response_texts = [r.message['content'] for r in response.choices]
+    return [r.split('<INS>')[1].split('</INS>')[0] for r in response_texts]
