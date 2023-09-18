@@ -9,6 +9,7 @@ from prompts import prompt_example_template
 from schema import ProblemExample
 from schema import PromptExample
 
+from src.opro.settings import CANDIDATES_PER_STEP
 from src.opro.settings import MAX_RESPONSE_TOKENS
 from src.opro.settings import MODEL_NAME
 
@@ -38,7 +39,8 @@ def generate_prompt_candidates(prompt_examples: List[PromptExample], problem_exa
         model=MODEL_NAME,
         messages=format_openai_chat_prompt(opt_prompt),
         temperature=1.0,
-        max_tokens=MAX_RESPONSE_TOKENS
+        max_tokens=MAX_RESPONSE_TOKENS,
+        n=CANDIDATES_PER_STEP
     )
     response_texts = [r.message['content'] for r in response.choices]
     return [r.split('<INS>')[1].split('</INS>')[0] for r in response_texts]

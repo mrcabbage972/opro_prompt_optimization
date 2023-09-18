@@ -1,5 +1,6 @@
 import logging
 import re
+from multiprocessing.pool import ThreadPool
 from typing import List
 
 import openai
@@ -12,15 +13,13 @@ from tqdm import tqdm
 from src.opro.settings import FINAL_ANSWER_SEP
 from src.opro.settings import MAX_RESPONSE_TOKENS
 from src.opro.settings import MODEL_NAME
+from src.opro.settings import THREADS
 
 LOGGER = logging.getLogger(__name__)
 
 
-def generate_answers(demo_examples, test_examples, prompt_candidate):
-    LOGGER.info(f'Generating answers for prompt candidate: {prompt_candidate}')
-    candidate_problem_prompts = [(build_problem_prompt(p, demo_examples, prompt_candidate)) for p in test_examples]
-    answers = []
-    for candidate_problem_prompt in candidate_problem_prompts:
+def generate_answer_proc(candidate_problem_prompt: str):
+    try:
         response = openai.ChatCompletion.create(
             model=MODEL_NAME,
             messages=format_openai_chat_prompt(candidate_problem_prompt),
@@ -30,7 +29,23 @@ def generate_answers(demo_examples, test_examples, prompt_candidate):
         response_text = response.choices[0].message.content
         answer = response_text.split(FINAL_ANSWER_SEP)[-1]
         answer = re.findall(r'[\d]+[.,\d]+|[\d]*[.][\d]+|[\d]+', answer)[0].replace(',', '')
+        return answer
+    except Exception as e:
+        LOGGER.error(f'Error generating answer: {e}')
+        return None
+
+
+def generate_answers(demo_examples, test_examples, prompt_candidate):
+    LOGGER.info(f'Generating answers for prompt candidate: {prompt_candidate}')
+    pool = ThreadPool(processes=THREADS)
+    candidate_problem_prompts = [(build_problem_prompt(p, demo_examples, prompt_candidate)) for p in test_examples]
+    answers = []
+
+    async_results = pool.map(generate_answer_proc, candidate_problem_prompts)
+    for answer in async_results:
+        assert answer is not None
         answers.append(answer)
+
     return answers
 
 
